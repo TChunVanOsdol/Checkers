@@ -12,12 +12,12 @@ public:
 	sf::RectangleShape tileShape;
 	int boardH, boardW;
 	int tileH, tileW;
-	int tilesPerRow = 8;
-	int tilesPerCol = 8;
+	int tilesPerRow;
+	int tilesPerCol;
 	int tileCount = tilesPerCol * tilesPerRow;
 	std::vector<tiletype> tileTypes;
 
-	Board(sf::RenderWindow &window, int height, int width);
+	Board(sf::RenderWindow &window, int height, int width, int tilesInRow, int tilesInCol);
 	void drawBoard(sf::RenderWindow &window);
 	int getTileN(float x, float y);
 	sf::Vector2f getTilePos(int N);

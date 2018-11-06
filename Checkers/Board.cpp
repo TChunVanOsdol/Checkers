@@ -2,9 +2,11 @@
 #include "stdafx.h"
 #include "Board.h"
 
-Board::Board(sf::RenderWindow &window, int height, int width) {
+Board::Board(sf::RenderWindow &window, int height, int width, int tilesInRow, int tilesInCol) {
 	boardH = height;
 	boardW = width;
+	tilesPerRow = tilesInRow;
+	tilesPerCol = tilesInCol;
 	tileH = boardH / tilesPerCol;
 	tileW = boardW / tilesPerRow;
 	tileShape = sf::RectangleShape(sf::Vector2f(tileW, tileH));
