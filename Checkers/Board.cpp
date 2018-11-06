@@ -7,6 +7,7 @@ Board::Board(sf::RenderWindow &window, int height, int width, int tilesInRow, in
 	boardW = width;
 	tilesPerRow = tilesInRow;
 	tilesPerCol = tilesInCol;
+	tileCount = tilesPerCol * tilesPerRow;
 	tileH = boardH / tilesPerCol;
 	tileW = boardW / tilesPerRow;
 	tileShape = sf::RectangleShape(sf::Vector2f(tileW, tileH));

@@ -14,7 +14,7 @@ public:
 	int tileH, tileW;
 	int tilesPerRow;
 	int tilesPerCol;
-	int tileCount = tilesPerCol * tilesPerRow;
+	int tileCount;
 	std::vector<tiletype> tileTypes;
 
 	Board(sf::RenderWindow &window, int height, int width, int tilesInRow, int tilesInCol);
