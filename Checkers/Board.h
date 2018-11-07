@@ -16,6 +16,9 @@ public:
 	int tilesPerCol;
 	int tileCount;
 	std::vector<tiletype> tileTypes;
+	int clickPos;
+	bool newClick = false;
+	bool pieceSelected = false;
 
 	Board(sf::RenderWindow &window, int height, int width, int tilesInRow, int tilesInCol);
 	void drawBoard(sf::RenderWindow &window);

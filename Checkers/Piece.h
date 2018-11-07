@@ -12,12 +12,14 @@ public:
 	Board* boardref;
 	int position;
 	bool alive = true;
+	bool selected = false;
 	checkertype color;
 	bool kinged = false;
 	sf::CircleShape checkerShape;
 
-	Piece(checkertype col, int pos);
+	Piece(checkertype col, int pos, Board &ref);
+	void update(sf::RenderWindow &window);
 	void drawPiece(sf::RenderWindow &window);
-	//void selectPiece();
-	//void placePiece();
+	void selectPiece();
+	void placePiece();
 };
