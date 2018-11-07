@@ -28,32 +28,227 @@ void Piece::drawPiece(sf::RenderWindow &window) {
 	window.draw(checkerShape);
 }
 
-void Piece::update(sf::RenderWindow &window) {
-	if (boardref->clickPos == position && selected == false && boardref->newClick == true) {
+void Piece::update(sf::RenderWindow &window, std::vector<Piece*> checkers) {
+	selectPiece();
+	placePiece(checkers);
+}
+
+void Piece::selectPiece() {
+	if (boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true) {
 		boardref->pieceSelected = true;
 		selected = true;
 		checkerShape.setOutlineThickness(8.f);
-		std::cout << boardref->newClick << std::endl;
 	}
+	//Deselect piece
 	else if (boardref->clickPos == position && selected == true && boardref->newClick == true) {
 		//Clicked on piece again
 		checkerShape.setOutlineThickness(0.f);
 		boardref->pieceSelected = false;
 		selected = false;
-		std::cout << boardref->newClick << std::endl;
+		if (boardref->pieceJumping == true) {
+			//Player chose to end turn after jumping a piece
+		}
+		boardref->pieceJumping = false;
 	}
-	else if (boardref->clickPos != position) {
-		//Clicked off of piece
-		checkerShape.setOutlineThickness(0.f);
-		boardref->pieceSelected = false;
-		selected = false;
-	}
+	
 }
 
-void Piece::selectPiece() {
-
-}
-
-void Piece::placePiece() {
-
+void Piece::placePiece(std::vector<Piece*> checkers) {
+	if (selected == true && boardref->clickPos != position) {
+		//Check if clickPos is in a valid new position
+		bool pieceBlocked = false;
+		for (Piece* checker : checkers) {
+			if (boardref->clickPos == checker->position) {
+				//Location is blocked by another piece
+				pieceBlocked = true;
+				break;
+			}
+		}
+		if (pieceBlocked == false && boardref->tileTypes[boardref->clickPos] == black) {
+			//Piece is not blocked and the tile is black (black is the playable space)
+			if (color == redteam && kinged == false) {
+				//Red moves down
+				if (boardref->pieceJumping == false && (boardref->clickPos == position + boardref->tilesPerRow - 1 || boardref->clickPos == position + boardref->tilesPerCol + 1)) {
+					//Valid position, no jump
+					position = boardref->clickPos;
+					checkerShape.setOutlineThickness(0.f);
+					selected = false;
+					boardref->pieceSelected = false;
+					//End of turn
+				}
+				//Red jumps down and left
+				if (boardref->clickPos == position + (boardref->tilesPerRow - 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos - (boardref->tilesPerRow - 1) == checker->position && checker->color == whiteteam) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//Red jumps down and right
+				if (boardref->clickPos == position + (boardref->tilesPerRow + 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos - (boardref->tilesPerRow + 1) == checker->position && checker->color == whiteteam) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//King a piece if it reaches the other side 
+				if (position >= boardref->tilesPerRow * (boardref->tilesPerCol - 1)) {
+					kinged = true;
+				}
+			}
+			else if (color == whiteteam && kinged == false) {
+				//White moves up
+				if (boardref->pieceJumping == false && (boardref->clickPos == position - boardref->tilesPerRow - 1 || boardref->clickPos == position - boardref->tilesPerCol + 1)) {
+					//Valid position, no jump
+					checkerShape.setOutlineThickness(0.f);
+					position = boardref->clickPos;
+					selected = false;
+					boardref->pieceSelected = false;
+				}
+				//White jumps up and left
+				if (boardref->clickPos == position - (boardref->tilesPerRow + 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos + (boardref->tilesPerRow + 1) == checker->position && checker->color == redteam) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//White jumps up and right
+				if (boardref->clickPos == position - (boardref->tilesPerRow - 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos + (boardref->tilesPerRow - 1) == checker->position && checker->color == redteam) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//King a piece if it reaches the other side 
+				if (position <= boardref->tilesPerRow) {
+					kinged = true;
+				}
+			}
+			else if (kinged == true) {
+				//King moves
+				if (boardref->pieceJumping == false && (boardref->clickPos == position - boardref->tilesPerRow - 1 || boardref->clickPos == position - boardref->tilesPerCol + 1
+					|| boardref->clickPos == position + boardref->tilesPerCol - 1 || boardref->clickPos == position + boardref->tilesPerCol + 1)) {
+					//Valid position, no jump
+					checkerShape.setOutlineThickness(0.f);
+					position = boardref->clickPos;
+					selected = false;
+					boardref->pieceSelected = false;
+				}
+				//King jumps up and left
+				if (boardref->clickPos == position - (boardref->tilesPerRow + 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos + (boardref->tilesPerRow + 1) == checker->position && checker->color != color) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//King jumps up and right
+				if (boardref->clickPos == position - (boardref->tilesPerRow - 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos + (boardref->tilesPerRow - 1) == checker->position && checker->color != color) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//King jumps down and left
+				if (boardref->clickPos == position + (boardref->tilesPerRow - 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos - (boardref->tilesPerRow - 1) == checker->position && checker->color != color) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+				//King jumps down and right
+				if (boardref->clickPos == position + (boardref->tilesPerRow + 1) * 2) {
+					//Check if jump is valid
+					for (Piece* checker : checkers) {
+						if (boardref->clickPos - (boardref->tilesPerRow + 1) == checker->position && checker->color != color) {
+							//Enemy piece is being jumped over
+							checker->alive = false;
+							pieceBlocked = true;
+							break;
+						}
+					}
+					if (pieceBlocked == true) {
+						//Valid position, jumped
+						position = boardref->clickPos;
+						boardref->pieceJumping = true;
+					}
+				}
+			}
+		}
+		else if (boardref->pieceJumping == false) {
+			//Clicked location that is open, but cannot be moved to
+			//Jumping pieces must jump again or end turn (by clicking on piece)
+			checkerShape.setOutlineThickness(0.f);
+			boardref->pieceSelected = false;
+			selected = false;
+		}
+	}
 }

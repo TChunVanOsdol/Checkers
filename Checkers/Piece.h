@@ -18,8 +18,8 @@ public:
 	sf::CircleShape checkerShape;
 
 	Piece(checkertype col, int pos, Board &ref);
-	void update(sf::RenderWindow &window);
 	void drawPiece(sf::RenderWindow &window);
+	void update(sf::RenderWindow &window, std::vector<Piece*> checkers);
 	void selectPiece();
-	void placePiece();
+	void placePiece(std::vector<Piece*> checkers);
 };

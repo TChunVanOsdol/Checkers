@@ -19,6 +19,7 @@ public:
 	int clickPos;
 	bool newClick = false;
 	bool pieceSelected = false;
+	bool pieceJumping = false;
 
 	Board(sf::RenderWindow &window, int height, int width, int tilesInRow, int tilesInCol);
 	void drawBoard(sf::RenderWindow &window);
