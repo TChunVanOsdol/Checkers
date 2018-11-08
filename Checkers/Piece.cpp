@@ -1,13 +1,15 @@
 #pragma once
 #include "stdafx.h"
 #include "Piece.h"
-#include <iostream>
 
-Piece::Piece(checkertype col, int pos, Board &ref) {
+Piece::Piece() {}
+
+Piece::Piece(checkertype col, int pos, Board &ref, Game &gref) {
 	//Create a game piece with red or white team at a position index.
 	color = col;
 	position = pos;
 	boardref = &ref;
+	gameref = &gref;
 	if (color == whiteteam) {
 		checkerShape.setFillColor(sf::Color::White);
 	}
@@ -16,25 +18,24 @@ Piece::Piece(checkertype col, int pos, Board &ref) {
 	}
 	checkerShape.setOutlineColor(sf::Color::Green);
 	checkerShape.setOutlineThickness(0.f);
+	checkerShape.setRadius(boardref->tileW * 0.4); //Sets a radius to 40% of a tile's width
+	checkerShape.setOrigin(-boardref->tileW * 0.1, -boardref->tileH * 0.1);
 }
 
 void Piece::drawPiece(sf::RenderWindow &window) {
-	checkerShape.setRadius(boardref->tileW * 0.4); //Sets a radius to 40% of a tile's width
-	sf::Vector2f piecePos = boardref->getTilePos(position);
-	//Adjust piece to be on center of tile
-	piecePos.x += boardref->tileW * 0.1;
-	piecePos.y += boardref->tileW * 0.1;
-	checkerShape.setPosition(piecePos);
+	checkerShape.setPosition(boardref->getTilePos(position));
 	window.draw(checkerShape);
 }
 
-void Piece::update(sf::RenderWindow &window, std::vector<Piece*> checkers) {
+void Piece::update(std::vector<Piece*> checkers) {
+	//Update function can be created as a series of functions to help organize what should happen each game loop
 	selectPiece();
 	placePiece(checkers);
 }
 
 void Piece::selectPiece() {
-	if (boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true) {
+	//Select piece
+	if (color == gameref->turnColor && boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true) {
 		boardref->pieceSelected = true;
 		selected = true;
 		checkerShape.setOutlineThickness(8.f);
@@ -47,15 +48,16 @@ void Piece::selectPiece() {
 		selected = false;
 		if (boardref->pieceJumping == true) {
 			//Player chose to end turn after jumping a piece
+			gameref->changeTurn();
 		}
 		boardref->pieceJumping = false;
 	}
-	
 }
 
 void Piece::placePiece(std::vector<Piece*> checkers) {
+	//Place a piece by checking if the next click is in a valid location
 	if (selected == true && boardref->clickPos != position) {
-		//Check if clickPos is in a valid new position
+		//Check all pieces to see if one of them is blocking the new click position
 		bool pieceBlocked = false;
 		for (Piece* checker : checkers) {
 			if (boardref->clickPos == checker->position) {
@@ -64,17 +66,18 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 				break;
 			}
 		}
+		//Piece is not blocked and the tile is black (black is the playable space)
 		if (pieceBlocked == false && boardref->tileTypes[boardref->clickPos] == black) {
-			//Piece is not blocked and the tile is black (black is the playable space)
 			if (color == redteam && kinged == false) {
 				//Red moves down
-				if (boardref->pieceJumping == false && (boardref->clickPos == position + boardref->tilesPerRow - 1 || boardref->clickPos == position + boardref->tilesPerCol + 1)) {
+				if (boardref->pieceJumping == false && (boardref->clickPos == position + boardref->tilesPerRow - 1 || boardref->clickPos == position + boardref->tilesPerRow + 1)) {
 					//Valid position, no jump
-					position = boardref->clickPos;
 					checkerShape.setOutlineThickness(0.f);
+					position = boardref->clickPos;
 					selected = false;
 					boardref->pieceSelected = false;
 					//End of turn
+					gameref->changeTurn();
 				}
 				//Red jumps down and left
 				if (boardref->clickPos == position + (boardref->tilesPerRow - 1) * 2) {
@@ -83,10 +86,12 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos - (boardref->tilesPerRow - 1) == checker->position && checker->color == whiteteam) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
 					}
+					//For jumping pieces, reusing the same pieceBlocked variable to check if there was actually an enemy piece to jump over
 					if (pieceBlocked == true) {
 						//Valid position, jumped
 						position = boardref->clickPos;
@@ -100,6 +105,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos - (boardref->tilesPerRow + 1) == checker->position && checker->color == whiteteam) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -117,12 +123,14 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 			}
 			else if (color == whiteteam && kinged == false) {
 				//White moves up
-				if (boardref->pieceJumping == false && (boardref->clickPos == position - boardref->tilesPerRow - 1 || boardref->clickPos == position - boardref->tilesPerCol + 1)) {
+				if (boardref->pieceJumping == false && (boardref->clickPos == position - boardref->tilesPerRow - 1 || boardref->clickPos == position - boardref->tilesPerRow + 1)) {
 					//Valid position, no jump
 					checkerShape.setOutlineThickness(0.f);
 					position = boardref->clickPos;
 					selected = false;
 					boardref->pieceSelected = false;
+					//End of turn
+					gameref->changeTurn();
 				}
 				//White jumps up and left
 				if (boardref->clickPos == position - (boardref->tilesPerRow + 1) * 2) {
@@ -131,6 +139,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos + (boardref->tilesPerRow + 1) == checker->position && checker->color == redteam) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -148,6 +157,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos + (boardref->tilesPerRow - 1) == checker->position && checker->color == redteam) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -165,13 +175,15 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 			}
 			else if (kinged == true) {
 				//King moves
-				if (boardref->pieceJumping == false && (boardref->clickPos == position - boardref->tilesPerRow - 1 || boardref->clickPos == position - boardref->tilesPerCol + 1
-					|| boardref->clickPos == position + boardref->tilesPerCol - 1 || boardref->clickPos == position + boardref->tilesPerCol + 1)) {
+				if (boardref->pieceJumping == false && (boardref->clickPos == position - boardref->tilesPerRow - 1 || boardref->clickPos == position - boardref->tilesPerRow + 1
+					|| boardref->clickPos == position + boardref->tilesPerRow - 1 || boardref->clickPos == position + boardref->tilesPerRow + 1)) {
 					//Valid position, no jump
 					checkerShape.setOutlineThickness(0.f);
 					position = boardref->clickPos;
 					selected = false;
 					boardref->pieceSelected = false;
+					//End of turn
+					gameref->changeTurn();
 				}
 				//King jumps up and left
 				if (boardref->clickPos == position - (boardref->tilesPerRow + 1) * 2) {
@@ -180,6 +192,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos + (boardref->tilesPerRow + 1) == checker->position && checker->color != color) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -197,6 +210,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos + (boardref->tilesPerRow - 1) == checker->position && checker->color != color) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -214,6 +228,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos - (boardref->tilesPerRow - 1) == checker->position && checker->color != color) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -231,6 +246,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 						if (boardref->clickPos - (boardref->tilesPerRow + 1) == checker->position && checker->color != color) {
 							//Enemy piece is being jumped over
 							checker->alive = false;
+							checker->position = boardref->tileCount;
 							pieceBlocked = true;
 							break;
 						}
@@ -243,9 +259,9 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 				}
 			}
 		}
+		//Clicked location that is open, but cannot be moved to
+		//Jumping pieces must jump again or end turn (by clicking on piece)
 		else if (boardref->pieceJumping == false) {
-			//Clicked location that is open, but cannot be moved to
-			//Jumping pieces must jump again or end turn (by clicking on piece)
 			checkerShape.setOutlineThickness(0.f);
 			boardref->pieceSelected = false;
 			selected = false;

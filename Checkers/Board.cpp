@@ -11,8 +11,10 @@ Board::Board(sf::RenderWindow &window, int height, int width, int tilesInRow, in
 	tileH = boardH / tilesPerCol;
 	tileW = boardW / tilesPerRow;
 	tileShape = sf::RectangleShape(sf::Vector2f(tileW, tileH));
+	//Generate vector for tiles
 	tileTypes = std::vector<tiletype>(tileCount);
 	for (int i = 0; i < tileCount; i++) {
+		//Try running through the first few iterations, what happens when 8 <= i < 16?
 		if ((i % 2 - (i / tilesPerRow) % 2) == 0) {
 			tileTypes[i] = white;
 		}
@@ -23,6 +25,7 @@ Board::Board(sf::RenderWindow &window, int height, int width, int tilesInRow, in
 }
 
 void Board::drawBoard(sf::RenderWindow &window) {
+	//Move a single rectangle across the board to draw each tile
 	sf::Vector2f tilePos;
 	for (int i = 0; i < tileCount; i++) {
 		tilePos = getTilePos(i);
@@ -39,7 +42,6 @@ void Board::drawBoard(sf::RenderWindow &window) {
 
 int Board::getTileN(float x, float y) {
 	//Find the index number starting at 0,0 going right then down
-	//For C4B, use the 2D approach
 	int tileX, tileY;
 	tileX = int(x / tileW);
 	tileY = int(y / tileH);
