@@ -60,7 +60,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 		//Check all pieces to see if one of them is blocking the new click position
 		bool pieceBlocked = false;
 		for (Piece* checker : checkers) {
-			if (boardref->clickPos == checker->position) {
+			if (boardref->clickPos == checker->position && checker->alive) {
 				//Location is blocked by another piece
 				pieceBlocked = true;
 				break;
