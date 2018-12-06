@@ -18,8 +18,6 @@ public:
 	std::vector<tiletype> tileTypes;
 	int clickPos;
 	bool newClick = false;
-	//Piece selection to move into player's turn variables in Game.h
-	bool pieceSelected = false;
 	bool pieceJumping = false;
 
 	Board(sf::RenderWindow &window, int height, int width, int tilesInRow, int tilesInCol);

@@ -36,7 +36,6 @@ void Piece::update(std::vector<Piece*> checkers) {
 void Piece::selectPiece() {
 	//Select piece
 	if (color == gameref->turnColor && boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true) {
-		boardref->pieceSelected = true;
 		selected = true;
 		checkerShape.setOutlineThickness(8.f);
 	}
@@ -44,7 +43,6 @@ void Piece::selectPiece() {
 	else if (boardref->clickPos == position && selected == true && boardref->newClick == true) {
 		//Clicked on piece again
 		checkerShape.setOutlineThickness(0.f);
-		boardref->pieceSelected = false;
 		selected = false;
 		if (boardref->pieceJumping == true) {
 			//Player chose to end turn after jumping a piece
@@ -75,7 +73,6 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 					checkerShape.setOutlineThickness(0.f);
 					position = boardref->clickPos;
 					selected = false;
-					boardref->pieceSelected = false;
 					//End of turn
 					gameref->changeTurn();
 				}
@@ -128,7 +125,6 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 					checkerShape.setOutlineThickness(0.f);
 					position = boardref->clickPos;
 					selected = false;
-					boardref->pieceSelected = false;
 					//End of turn
 					gameref->changeTurn();
 				}
@@ -181,7 +177,6 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 					checkerShape.setOutlineThickness(0.f);
 					position = boardref->clickPos;
 					selected = false;
-					boardref->pieceSelected = false;
 					//End of turn
 					gameref->changeTurn();
 				}
@@ -263,7 +258,6 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 		//Jumping pieces must jump again or end turn (by clicking on piece)
 		else if (boardref->pieceJumping == false) {
 			checkerShape.setOutlineThickness(0.f);
-			boardref->pieceSelected = false;
 			selected = false;
 		}
 	}
