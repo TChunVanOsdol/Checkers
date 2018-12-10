@@ -4,7 +4,7 @@
 
 Game::Game(int startingPieces) {
 	for (int i = 0; i < playerCount; i++)
-	pieceTotal[i] = startingPieces;
+		pieceTotal[i] = startingPieces;
 
 	victoryFont.loadFromFile("Assets/arial.ttf");
 	victoryText.setFont(victoryFont);
@@ -55,4 +55,9 @@ bool Game::losePiece(checkertype color) {
 		return true;
 	}
 	return false;
+}
+
+void Game::restartGame(int startingPieces) {
+	for (int i = 0; i < playerCount; i++)
+		pieceTotal[i] = startingPieces;
 }

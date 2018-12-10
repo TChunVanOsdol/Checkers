@@ -25,4 +25,5 @@ public:
 	void drawTurn(sf::RenderWindow &window);
 	void drawVictory(sf::RenderWindow &window);
 	bool losePiece(checkertype color);
+	void restartGame(int startingPieces);
 };

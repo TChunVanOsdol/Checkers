@@ -114,7 +114,7 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 					}
 				}
 				//King a piece if it reaches the other side 
-				if (position >= boardref->tilesPerRow * (boardref->tilesPerCol - 1)) {
+				if (position >= boardref->tileCount - boardref->tilesPerRow) {
 					kinged = true;
 				}
 			}
