@@ -11,7 +11,7 @@ enum checkertype {
 
 class Game {
 public:
-	int playerTurn = 0;
+	int playerTurn;
 	sf::RectangleShape turnIndicator;
 	checkertype turnColor;
 	int pieceTotal [playerCount];
@@ -20,9 +20,10 @@ public:
 	sf::Text victoryText;
 	sf::Font victoryFont;
 
-	Game(int startingPieces);
+	Game(int startPlayer, int startingPieces);
 	void changeTurn();
 	void drawTurn(sf::RenderWindow &window);
 	void drawVictory(sf::RenderWindow &window);
 	bool losePiece(checkertype color);
+	void restartGame(int startPlayer, int startingPieces);
 };
