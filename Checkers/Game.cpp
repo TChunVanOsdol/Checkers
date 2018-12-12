@@ -2,9 +2,11 @@
 #include "stdafx.h"
 #include "Game.h"
 
-Game::Game(int startingPieces) {
+Game::Game(int startPlayer, int startingPieces) {
 	for (int i = 0; i < playerCount; i++)
 		pieceTotal[i] = startingPieces;
+	
+	playerTurn = startPlayer;
 
 	victoryFont.loadFromFile("Assets/arial.ttf");
 	victoryText.setFont(victoryFont);
@@ -57,7 +59,17 @@ bool Game::losePiece(checkertype color) {
 	return false;
 }
 
-void Game::restartGame(int startingPieces) {
+void Game::restartGame(int startPlayer, int startingPieces) {
 	for (int i = 0; i < playerCount; i++)
 		pieceTotal[i] = startingPieces;
+	playerTurn = startPlayer;
+	//Set up first turn
+	if (playerTurn == 0) {
+		turnIndicator.setFillColor(sf::Color::Red);
+		turnColor = redteam;
+	}
+	else if (playerTurn == 1) {
+		turnIndicator.setFillColor(sf::Color::White);
+		turnColor = whiteteam;
+	}
 }
