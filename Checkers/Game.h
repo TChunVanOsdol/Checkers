@@ -14,7 +14,11 @@ public:
 	int playerTurn;
 	sf::RectangleShape turnIndicator;
 	checkertype turnColor;
-	int pieceTotal [playerCount];
+	int pieceTotal[playerCount];
+	int moveTotal[playerCount];
+
+	bool newTurn = true;
+	bool turnChanged = false;
 
 	std::string victoryMsg [playerCount];
 	sf::Text victoryText;
@@ -25,5 +29,6 @@ public:
 	void drawTurn(sf::RenderWindow &window);
 	void drawVictory(sf::RenderWindow &window);
 	bool losePiece(checkertype color);
+	bool countMoves(int player);
 	void restartGame(int startPlayer, int startingPieces);
 };

@@ -12,8 +12,8 @@ Game::Game(int startPlayer, int startingPieces) {
 	victoryText.setFont(victoryFont);
 	victoryText.setFillColor(sf::Color::Green);
 	victoryText.setCharacterSize(60);
-	victoryMsg[0] = "Red wins!";
-	victoryMsg[1] = "White wins!";
+	victoryMsg[0] = "Red is defeated!";
+	victoryMsg[1] = "White is defeated!";
 
 	turnIndicator.setFillColor(sf::Color::Red);
 	turnIndicator.setSize({ 50, 50 });
@@ -39,6 +39,8 @@ void Game::changeTurn() {
 		turnIndicator.setFillColor(sf::Color::White);
 		break;
 	}
+	//Track that a new turn is coming up
+	turnChanged = true;
 }
 
 void Game::drawTurn(sf::RenderWindow &window) {
@@ -57,6 +59,16 @@ bool Game::losePiece(checkertype color) {
 		return true;
 	}
 	return false;
+}
+
+bool Game::countMoves(int player) {
+	if (moveTotal[player] == 0) {
+		victoryText.setString(victoryMsg[player]);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 void Game::restartGame(int startPlayer, int startingPieces) {

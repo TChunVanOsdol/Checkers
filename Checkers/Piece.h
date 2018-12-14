@@ -12,6 +12,7 @@ public:
 	int position;
 	bool alive = true;
 	bool selected = false;
+	bool selectable = true;
 	checkertype color;
 	bool kinged = false;
 	sf::CircleShape checkerShape;
@@ -22,4 +23,5 @@ public:
 	void update(std::vector<Piece*> checkers);
 	void selectPiece();
 	void placePiece(std::vector<Piece*> checkers);
+	void filterPiece(std::vector<Piece*> checkers);
 };

@@ -31,11 +31,14 @@ void Piece::update(std::vector<Piece*> checkers) {
 	//Update function can be created as a series of functions to help organize what should happen each game loop
 	selectPiece();
 	placePiece(checkers);
+	if (gameref->newTurn == true) {
+		filterPiece(checkers);
+	}
 }
 
 void Piece::selectPiece() {
 	//Select piece
-	if (color == gameref->turnColor && boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true) {
+	if (color == gameref->turnColor && boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true && selectable == true) {
 		selected = true;
 		checkerShape.setOutlineThickness(8.f);
 	}
@@ -261,4 +264,65 @@ void Piece::placePiece(std::vector<Piece*> checkers) {
 			selected = false;
 		}
 	}
+}
+
+void Piece::filterPiece(std::vector<Piece*> checkers) {
+	//Check if piece can move at all. If possible, add the number of available moves to the owner's moveTotal
+	std::vector<int> positionCheck;
+	int closePositions;
+	int moveCount;
+	
+	if (kinged == true) {
+		positionCheck.push_back(position + boardref->tilesPerRow + 1);
+		positionCheck.push_back(position + boardref->tilesPerRow - 1);
+		positionCheck.push_back(position - boardref->tilesPerRow + 1);
+		positionCheck.push_back(position - boardref->tilesPerRow - 1);
+		moveCount = 4;
+	}
+	else if (color == redteam) {
+		positionCheck.push_back(position + boardref->tilesPerRow + 1);
+		positionCheck.push_back(position + boardref->tilesPerRow - 1);
+		moveCount = 2;
+	}
+	else if (color == whiteteam) {
+		positionCheck.push_back(position - boardref->tilesPerRow + 1);
+		positionCheck.push_back(position - boardref->tilesPerRow - 1);
+		moveCount = 2;
+	}
+
+	closePositions = positionCheck.size();
+	for (int i = 0; i < positionCheck.size(); i++) {
+		//If the position is out of bounds, end this iteration
+		if (positionCheck[i] >= boardref->tileCount || positionCheck[i] < 0) {
+			moveCount--;
+			continue;
+		}
+		//Is the position in question a white tile (unpathable)?
+		if (boardref->tileTypes[positionCheck[i]] == white) {
+			moveCount--;
+			continue;
+		}
+		//Are any pieces blocking the position in question?
+		for (Piece* checker : checkers) {
+			//A piece is blocking the position
+			if (checker->position == positionCheck[i]) {
+				moveCount--;
+				//Check if blocking piece is an enemy, but only if it's one space away
+				if (checker->color != color && i < closePositions) {
+					//Add a new position to check
+					positionCheck.push_back(position + (positionCheck[i] - position) * 2);
+					moveCount++;
+				}
+				break;
+			}
+		}
+	}
+	//The piece cannot move, make it unselectable
+	if (moveCount == 0) {
+		selectable = false;
+	}
+	else {
+		selectable = true;
+	}
+	gameref->moveTotal[color] += moveCount;
 }
