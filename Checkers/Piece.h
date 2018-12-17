@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "Board.h"
 #include "Game.h"
+#include <iostream>
 
 //Enumerator for checkertype moved to Game.h
 
@@ -16,6 +17,8 @@ public:
 	checkertype color;
 	bool kinged = false;
 	sf::CircleShape checkerShape;
+	bool jumpable = false;
+	std::vector<int> endPositions;
 
 	Piece();
 	Piece(checkertype col, int pos, Board &ref, Game &gref);
@@ -24,4 +27,5 @@ public:
 	void selectPiece();
 	void placePiece(std::vector<Piece*> checkers);
 	void filterPiece(std::vector<Piece*> checkers);
+	void searchTree(std::vector<Piece*> checkers);
 };

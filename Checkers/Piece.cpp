@@ -33,6 +33,9 @@ void Piece::update(std::vector<Piece*> checkers) {
 	placePiece(checkers);
 	if (gameref->newTurn == true) {
 		filterPiece(checkers);
+		if (jumpable == true) {
+			searchTree(checkers);
+		}
 	}
 }
 
@@ -41,6 +44,11 @@ void Piece::selectPiece() {
 	if (color == gameref->turnColor && boardref->pieceJumping == false && boardref->clickPos == position && selected == false && boardref->newClick == true && selectable == true) {
 		selected = true;
 		checkerShape.setOutlineThickness(8.f);
+		std::cout << "Tiles to jump to: ";
+		for (int pos : endPositions) {
+			std::cout << pos << " ";
+		}
+		std::cout << std::endl;
 	}
 	//Deselect piece
 	else if (boardref->clickPos == position && selected == true && boardref->newClick == true) {
@@ -271,7 +279,10 @@ void Piece::filterPiece(std::vector<Piece*> checkers) {
 	std::vector<int> positionCheck;
 	int closePositions;
 	int moveCount;
-	
+	//Reset variables for search algorithm
+	jumpable = false;
+	endPositions.clear();
+
 	if (kinged == true) {
 		positionCheck.push_back(position + boardref->tilesPerRow + 1);
 		positionCheck.push_back(position + boardref->tilesPerRow - 1);
@@ -312,6 +323,7 @@ void Piece::filterPiece(std::vector<Piece*> checkers) {
 					//Add a new position to check
 					positionCheck.push_back(position + (positionCheck[i] - position) * 2);
 					moveCount++;
+					jumpable = true;
 				}
 				break;
 			}
@@ -325,4 +337,89 @@ void Piece::filterPiece(std::vector<Piece*> checkers) {
 		selectable = true;
 	}
 	gameref->moveTotal[color] += moveCount;
+}
+
+void Piece::searchTree(std::vector<Piece*> checkers) {
+	//This function will find all possible ending points for a piece that can jump
+	//Does not assume the piece becomes kinged during a chain of jumps
+
+	//Positions for neighboring tiles
+	int checkPos[4] = { boardref->tilesPerRow - 1, boardref->tilesPerRow + 1, -boardref->tilesPerRow - 1, -boardref->tilesPerRow + 1 };
+	int checkCount = 4;
+	int checkStart = 0;
+	//Only check down if the piece is red and not kinged
+	if (color == redteam && !kinged) {
+		checkCount = 2;
+	}
+	//Only check up if the piece is white and not kinged
+	if (color == whiteteam && !kinged) {
+		checkStart = 2;
+	}
+	//Variables to track piece positions
+	int currentNode = position;
+	int enemyNode;
+	int targetNode;
+	//Groups of unexplored (open) and explored (closed) nodes
+	std::vector<int> openSet = { position };
+	std::vector<int> closedSet;
+
+	while (!openSet.empty()) {
+		//Choose the lowest position open node
+		int lowestPos = boardref->tileCount;
+		int lowestIndex = 0;
+		for (int i = 0; i < openSet.size(); i++) {
+			if (openSet[i] < lowestPos) {
+				lowestPos = openSet[i];
+				lowestIndex = i;
+			}
+		}
+		currentNode = lowestPos;
+		//Check the neighbor nodes
+		for (int i = checkStart; i < checkCount; i++) {
+			bool enemyChecked = false;
+			bool spaceOpen = true;
+			enemyNode = currentNode + checkPos[i];
+			targetNode = currentNode + 2 * checkPos[i];
+			//Check for out of bounds locations
+			if (enemyNode < 0 || enemyNode >= boardref->tileCount || targetNode < 0 || targetNode >= boardref->tileCount) {
+				continue;
+			}
+			//Check for unpathable (white) tiles
+			if (boardref->tileTypes[enemyNode] == white || boardref->tileTypes[targetNode] == white) {
+				continue;
+			}
+			//Check if node is already in the closed set
+			bool endIter = false;
+			for (int node : closedSet) {
+				if (node == targetNode) {
+					endIter = true;
+					break;
+				}
+			}
+			//End this iteration if the node is invalid
+			if (endIter == true) {
+				continue;
+			}
+			for (Piece* checker : checkers) {
+				//Check if an enemy is in the correct position
+				if (checker->position == enemyNode && checker->color != color) {
+					enemyChecked = true;
+				}
+				//Check if target space is blocked 
+				if (checker->position == targetNode) {
+					spaceOpen = false;
+					break;
+				}
+			}
+			//If all the conditions are met, add the target node to the open set
+			if (enemyChecked == true && spaceOpen == true) {
+				openSet.push_back(targetNode);
+			}
+		}
+		//Checking neighbors complete, move the current node into the closed set
+		closedSet.push_back(currentNode);
+		openSet.erase(openSet.begin() + lowestIndex);
+	}
+	//Save the closed set as the end positions
+	endPositions = closedSet;
 }
