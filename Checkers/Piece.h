@@ -1,14 +1,15 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Board.h"
-#include "Game.h"
 
-//Enumerator for checkertype moved to Game.h
+enum checkertype {
+	redteam,
+	whiteteam
+};
 
 class Piece {
 public:
 	Board* boardref;
-	Game* gameref;
 	int position;
 	bool alive = true;
 	bool selected = false;
@@ -17,7 +18,7 @@ public:
 	sf::CircleShape checkerShape;
 
 	Piece();
-	Piece(checkertype col, int pos, Board &ref, Game &gref);
+	Piece(checkertype col, int pos, Board &ref);
 	void drawPiece(sf::RenderWindow &window);
 	void update(std::vector<Piece*> checkers);
 	void selectPiece();
